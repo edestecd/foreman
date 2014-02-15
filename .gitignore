@@ -13,7 +13,7 @@ config/settings.plugins.d
 config/database.yml
 config/initializers/local_secret_token.rb
 config/initializers/encryption_key.rb
-Gemfile.lock
+#Gemfile.lock
 bundler.d/*.local.rb
 *.sw?
 .idea
