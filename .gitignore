@@ -7,9 +7,9 @@ tmp/
 jenkins/reports/*
 test/reports/*
 db/schema.rb
-config/settings.yaml
+#config/settings.yaml
 config/settings.plugins.d
-config/email.yaml
+#config/email.yaml
 config/database.yml
 config/initializers/local_secret_token.rb
 config/initializers/encryption_key.rb
