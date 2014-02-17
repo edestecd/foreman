@@ -12,8 +12,10 @@ module OperatingsystemsHelper
       "Solaris"
     when /darwin/i
       "Darwin"
-    when /redhat|oracle/i
+    when /redhat/i
       "Redhat"
+    when /oracle/i
+      "Oracle"
     when /centos/i
       "Centos"
     when /scientific/i
