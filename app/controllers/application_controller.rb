@@ -34,7 +34,7 @@ class ApplicationController < ActionController::Base
   end
 
   def api_request?
-    request.format.json? or request.format.yaml?
+    request.format and (request.format.json? or request.format.yaml?)
   end
 
   protected

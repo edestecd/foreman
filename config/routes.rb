@@ -296,6 +296,7 @@ Foreman::Application.routes.draw do
 
   root :to => 'dashboard#index'
   match 'dashboard', :to => 'dashboard#index', :as => "dashboard"
+  match ':puppetdb(/*puppetdb_url)', :to => 'dashboard#puppetdb', :puppetdb => /d3\.v2|charts|v3|puppetdb/, :as => "puppetdb_dashboard"
   match 'dashboard/auto_complete_search', :to => 'hosts#auto_complete_search', :as => "auto_complete_search_dashboards"
   match 'statistics', :to => 'statistics#index', :as => "statistics"
   match 'status', :to => 'home#status', :as => "status"

@@ -10,6 +10,17 @@ class DashboardController < ApplicationController
     end
   end
 
+  def puppetdb
+    puppetdb_url = case params[:puppetdb]
+      when 'd3.v2', 'charts' then "/dashboard#{request.original_fullpath}"
+      when 'v3'              then request.original_fullpath
+      else ;                      '/dashboard/index.html'
+    end
+    result = Net::HTTP.get_response('localhost', puppetdb_url, 8080)
+    #render error if result. ...
+    render :text => result.body
+  end
+
   private
 
   def prefetch_data

@@ -33,6 +33,9 @@ module Menu
                     :url_hash => {:controller => '/reports', :action => 'index', :search => 'eventful = true'}
           menu.item :fact_values,       :caption => N_('Facts')
           menu.item :statistics,        :caption => N_('Statistics')
+          menu.item :puppetdb,          :caption => N_('PuppetDB'),
+                    :url_hash => {:controller => '/dashboard', :action => 'puppetdb', :puppetdb => 'puppetdb'},
+                    :html => {:target => '_blank'}
           menu.item :trends,            :caption => N_('Trends')
           menu.item :audits,            :caption => N_('Audits')
         end
