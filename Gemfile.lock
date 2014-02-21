@@ -64,7 +64,7 @@ GEM
     excon (0.31.0)
     execjs (2.0.2)
     extlib (0.9.16)
-    facter (1.7.5)
+    facter (1.6.18)
     factory_girl (2.6.4)
       activesupport (>= 2.3.9)
     factory_girl_rails (1.7.0)
@@ -307,7 +307,7 @@ DEPENDENCIES
   capybara (~> 2.0.0)
   ci_reporter (>= 1.6.3)
   database_cleaner (= 0.9.1)
-  facter
+  facter (= 1.6.18)
   factory_girl_rails (~> 1.2)
   fast_gettext (>= 0.8.0)
   flot-rails (= 0.0.3)
