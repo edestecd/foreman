@@ -5,7 +5,7 @@ class Report < ActiveRecord::Base
   belongs_to_host
   has_many :messages, :through => :logs
   has_many :sources, :through => :logs
-  has_many :logs, :dependent => :destroy
+  has_many :logs, :dependent => :destroy, :order => '`logs`.id ASC'
   has_one :environment, :through => :host
   has_one :hostgroup, :through => :host
 
