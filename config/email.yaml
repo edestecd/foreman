@@ -5,3 +5,8 @@ production:
   sendmail_settings:
     location: /usr/sbin/sendmail
     arguments: -i -t
+staging:
+  delivery_method: :sendmail
+  sendmail_settings:
+    location: /usr/sbin/sendmail
+    arguments: -i -t
