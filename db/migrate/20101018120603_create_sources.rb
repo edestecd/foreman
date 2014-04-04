@@ -3,7 +3,9 @@ class CreateSources < ActiveRecord::Migration
     create_table :sources do |t|
       t.text :value
     end
-    if ActiveRecord::Base.connection.instance_values["config"][:adapter] == "not" or ActiveRecord::Base.connection.instance_values["config"][:adapter] == "not"
+    if true # check if mysql cluster
+      # do nothing
+    elsif ActiveRecord::Base.connection.instance_values["config"][:adapter] == "mysql" or ActiveRecord::Base.connection.instance_values["config"][:adapter] == "mysql2"
       execute "ALTER TABLE sources ENGINE = MYISAM"
       execute "ALTER TABLE sources ADD FULLTEXT (value)"
     else
