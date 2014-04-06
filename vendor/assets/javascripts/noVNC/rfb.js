@@ -136,6 +136,7 @@ Util.conf_defaults(conf, that, defaults, [
     ['focusContainer',     'wo', 'dom', document, 'DOM element that captures keyboard input'],
 
     ['encrypt',            'rw', 'bool', false, 'Use TLS/SSL/wss encryption'],
+    ['real_encrypt',       'rw', 'bool', true, 'Use TLS/SSL/wss encryption'],
     ['true_color',         'rw', 'bool', true,  'Request true color pixel data'],
     ['local_cursor',       'rw', 'bool', false, 'Request locally rendered cursor'],
     ['shared',             'rw', 'bool', true,  'Request shared mode'],
@@ -283,7 +284,7 @@ function connect() {
     if (typeof UsingSocketIO !== "undefined") {
         uri = "http://" + rfb_host + ":" + rfb_port + "/" + rfb_path;
     } else {
-        if (conf.encrypt) {
+        if (conf.real_encrypt) {
             uri = "wss://";
         } else {
             uri = "ws://";
@@ -881,7 +882,7 @@ init_msg = function() {
         setTimeout(checkEvents, conf.check_rate);
         setTimeout(scan_tight_imgQ, scan_imgQ_rate);
 
-        if (conf.encrypt) {
+        if (conf.real_encrypt) {
             updateState('normal', "Connected (encrypted) to: " + fb_name);
         } else {
             updateState('normal', "Connected (unencrypted) to: " + fb_name);

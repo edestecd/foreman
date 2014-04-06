@@ -27,7 +27,8 @@ class WsProxy
     port = PORTS.first
     begin
       cmd  = "#{ws_proxy} --daemon --idle-timeout=#{idle_timeout} --timeout=#{timeout} #{port} #{host}:#{host_port}"
-      cmd += " --ssl-target" if ssl_target
+      cmd += " --cert=#{SETTINGS[:ssl_certificate]} --key=#{SETTINGS[:ssl_priv_key]} --ssl-only" if SETTINGS[:ws_proxy_ssl_only]
+      cmd += " --ssl-target" if (ssl_target or SETTINGS[:ws_proxy_ssl_target])
       execute(cmd)
       # if the port is already in use, try another one from the pool
       # this is not ideal, as it would try all ports in order
