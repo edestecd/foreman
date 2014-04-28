@@ -9,6 +9,13 @@ Foreman::Application.configure do
   config.consider_all_requests_local       = false
   config.action_controller.perform_caching = true
 
+  # Proxy servers we trust that can be excluded from HTTP X-Forwarded-For list
+  # http://api.rubyonrails.org/classes/ActionDispatch/RemoteIp.html
+  # Rails default is all ipv4 private address ranges
+  # which filters out local miami ips as proxies and then we get 127.0.0.1 as client ip
+  # https://github.com/rails/rails/pull/2632
+  config.action_dispatch.trusted_proxies = /\A10\.0\.30\.121\z|\A127\.0\.0\.1\z/
+
   # Specifies the header that your server uses for sending files
   # config.action_dispatch.x_sendfile_header = "X-Sendfile"
 
@@ -111,5 +118,5 @@ Foreman::Application.configure do
   config.assets.precompile += javascript.map{|js| js + ".js"} + stylesheets + %w(background-size.htc)
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  # config.force_ssl = true
+  config.force_ssl = true
 end
