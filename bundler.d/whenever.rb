@@ -1,3 +1,3 @@
 group :whenever do
-  gem 'whenever', '~> 0.9.0', :require => false
+  gem 'whenever', '~> 0.9.2', :require => false
 end
