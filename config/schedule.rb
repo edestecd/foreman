@@ -30,10 +30,14 @@ job_type :runner,  "cd :path && :runner_command -e :environment ':task' :output"
 
 # Learn more: http://github.com/javan/whenever
 
-every :sunday, :at => '1am' do
+every :sunday, :at => '12:00 am', :roles => [:app] do
   rake "reports:expire days=7"
 end
 
-every :day, :at => '4am' do
+every :day, :at => '2:00 am', :roles => [:db] do
+  script "db_backup --dir /san/dragonfly/:environment/web_apps/foreman/db_backups --max 7 --gzip"
+end
+
+every :day, :at => '5:00 am', :roles => [:app] do
   rake "reports:summarize days=1"
 end

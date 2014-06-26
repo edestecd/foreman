@@ -10,8 +10,8 @@
 module ActionDispatch
   class Request
     def trusted_proxy?(ip)
-      if Foreman::Application.config.action_dispatch.trusted_proxies
-        ip =~ Foreman::Application.config.action_dispatch.trusted_proxies
+      if Rails.application.config.action_dispatch.trusted_proxies
+        ip =~ Rails.application.config.action_dispatch.trusted_proxies
       else
         super(ip)
       end
