@@ -119,4 +119,7 @@ Foreman::Application.configure do
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   # config.force_ssl = true
+
+  # what database engine do you want in migrations?
+  config.mysql_adapter_default_db_engine = 'ndbcluster'
 end

@@ -1,6 +1,6 @@
 class AddDigestToMessages < ActiveRecord::Migration
   def self.up
-    if true # check if mysql cluster
+    if Rails.application.config.mysql_cluster # check if mysql cluster
       # do nothing
     elsif ActiveRecord::Base.connection.instance_values["config"][:adapter] == "mysql" or ActiveRecord::Base.connection.instance_values["config"][:adapter] == "mysql2"
       execute "DROP INDEX value ON messages" if index_exists?(:messages, :value, :name => 'value')

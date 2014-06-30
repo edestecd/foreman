@@ -1,6 +1,6 @@
 class AddDigestToSources < ActiveRecord::Migration
   def self.up
-    if true # check if mysql cluster
+    if Rails.application.config.mysql_cluster # check if mysql cluster
       # do nothing
     elsif ["mysql", "mysql2"].include? ActiveRecord::Base.connection.instance_values["config"][:adapter]
       execute "DROP INDEX value ON sources" if index_exists?(:sources, :value, :name => 'value')
