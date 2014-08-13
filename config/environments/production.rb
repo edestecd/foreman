@@ -121,5 +121,5 @@ Foreman::Application.configure do
   # config.force_ssl = true
 
   # what database engine do you want in migrations?
-  config.mysql_adapter_default_db_engine = 'ndbcluster'
+  config.mysql_adapter_default_db_engine = 'InnoDB'
 end
