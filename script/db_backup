@@ -1,0 +1,175 @@
+#!/usr/bin/env ruby
+
+#
+# db_backup backs up the entire mysql database of this rails application by using mysqldump
+# and exporting the dump to timestamp.sql.  This script is intended to be in your script dir.
+# It is suggested that you use a diff dir for each rails app to store your backups.
+# This script only works if you are using InnoDB tables as it uses a switch that doesn't read-lock tables.
+#
+# http://dev.mysql.com/doc/refman/5.6/en/mysqldump.html
+# http://dev.mysql.com/doc/refman/5.6/en/password-security-user.html
+#
+# Usage is:
+#  $0 [--env {development|staging|production}] [--dir path] [--tmp path] [--max number] [--gzip]
+#
+#    --env can be used to specify the environment to use other than
+#        the default which is "development"
+#
+#    --dir can be used to specify the directory to store the backups - relative to your path or absolute
+#        the default is db/backups/ in your rails app
+#
+#    --tmp can be used to specify a local tmp dir to dump to before copying to dir - relative to your path or absolute
+#        the default is not to use a tmp dir and dump directly to dir
+#
+#    --max can be used to specify the maximum backups to keep in dir
+#        the default is 7 - one for every day of the week
+#
+#    --mysql-dir indicate where mysql binaries are if it can't easily be guessed
+#
+#    --gzip can be used to specify that you want the dumped files to be gzipped
+#        the default is to not compress/gzip the dumps - note compressing causes corruption with binary(blob) data sometimes
+#
+#    --verbose be noisy and show every command that is run
+#
+#    --quiet supress all output but errors
+#
+
+require 'yaml'
+require 'getoptlong'
+
+# Where to check for mysql
+# Add more locations here if it's located somewhere else on your machine.
+mysql_check = [File.join('', 'usr', 'bin'),
+               File.join('', 'usr', 'local', 'mysql', 'bin'),
+               File.join('', 'opt', 'local', 'lib', 'mariadb-10.0', 'bin')]
+
+relpa = File.dirname(__FILE__)
+rails_root = File.join(relpa, '..')
+df = File.join(rails_root, 'config', 'database.yml')
+
+abort "\nMust have access to #{df} to use this utility.\n\n" unless test('r', df)
+
+env = (ENV['RAILS_ENV'] || ENV['RACK_ENV']) # try environment
+bdir = tmpd = max = mysqlloc = nil
+gzip = verbose = quiet = false
+
+gol = GetoptLong.new(
+  ['--help', '-h', GetoptLong::NO_ARGUMENT],
+  ['--env', '-e', GetoptLong::REQUIRED_ARGUMENT],
+  ['--dir', '-d', GetoptLong::REQUIRED_ARGUMENT],
+  ['--tmp', '-t', GetoptLong::REQUIRED_ARGUMENT],
+  ['--max', '-m', GetoptLong::REQUIRED_ARGUMENT],
+  ['--mysql-dir', '-y', GetoptLong::REQUIRED_ARGUMENT],
+  ['--gzip', '-g', GetoptLong::NO_ARGUMENT],
+  ['--verbose', '-v', GetoptLong::NO_ARGUMENT],
+  ['--quiet', '-q', GetoptLong::NO_ARGUMENT]
+)
+
+begin
+  gol.each do |opt, arg|
+    case opt
+    when '--help' then
+      puts <<-EOF
+
+Usage is: #{$PROGRAM_NAME} [--env|-e {development|staging|production}] [--dir|-d path] [--tmp|-t path] [--max|-m number] [--gzip|-g] [--verbose|-v] [--quiet|-q]
+  Backs up the entire mysql database to a sql file and rotates files. Only for InnoDB tables.
+
+    --env can be used to specify the environment to use other than
+          the default which is 'development'.
+
+    --dir can be used to specify the directory to store the backups - relative to your path or absolute.
+          The default is db/backups/ in your rails app.
+          It is recommended that you use a diff dir for each of your rails apps.
+
+    --tmp can be used to specify a local tmp dir to dump to before copying to dir - relative to your path or absolute.
+          The default is not to use a tmp dir and dump directly to dir.
+
+    --max can be used to specify the maximum backups to keep in dir.
+          The default is 7 - one for every day of the week.
+
+    --mysql-dir indicate where mysql binaries are if it can't easily be guessed.
+
+    --gzip can be used to specify that you want the dumped files to be gzipped.
+           The default is to not compress/gzip the dumps.
+           Note compressing causes corruption with binary(blob) data sometimes.
+
+    --verbose be noisy and show every command that is run.
+
+    --quiet supress all output but errors.
+
+      EOF
+      exit
+    when '--env' then env = arg
+    when '--dir' then bdir = arg
+    when '--tmp' then tmpd = arg
+    when '--max' then max = arg.to_i
+    when '--mysql-dir' then mysqlloc = arg
+    when '--gzip' then gzip = true
+    when '--verbose' then verbose = true
+    when '--quiet' then quiet = true
+    end
+  end
+rescue GetoptLong::Error => details
+  abort details.inspect
+end
+
+dy = YAML.load_file(df)
+
+env ||= 'development'
+bdir ||= File.join(rails_root, 'db', 'backups')
+bdir = bdir.gsub(':environment', env)
+max ||= 7
+
+# get details from database.yml
+abort "\nadapter must be mysql(2) not #{dy[env]['adapter']} to use this utility.\n\n" unless dy[env]['adapter'].to_s.start_with?('mysql')
+
+dump_args = []
+dump_args << '--single-transaction'
+dump_args << "'--user=#{dy[env]['username']}'"     unless dy[env]['username'].nil?
+dump_args << "'--password=#{dy[env]['password']}'" unless dy[env]['password'].nil?
+dump_args << "'--socket=#{dy[env]['socket']}'"     unless dy[env]['socket'].nil?
+dump_args << "'--host=#{dy[env]['host']}'"         unless dy[env]['host'].nil?
+dump_args << "'--port=#{dy[env]['port']}'"         unless dy[env]['port'].nil?
+dump_args << dy[env]['database']
+dump_args << '| gzip -c'                           if gzip
+dump_args << '>'
+
+dump_file = "#{Time.now.strftime('%Y-%m-%d_%H-%M-%S')}#{(gzip ? '.sql.gz' : '.sql')}"
+dump_path = (tmpd.nil? ? File.join(bdir, dump_file) : File.join(tmpd, dump_file))
+mv_path = File.join(bdir, dump_file)
+
+# find mysql
+# Some programs calling this script don't like to load
+# your .bashrc or .bash_profile - rails
+# so we have to find it ourselves.
+mysqlloc ||= mysql_check.find { |m| File.exist?(File.join(m, 'mysql')) }
+abort "\nCan't find mysql on your system. Use --mysql-dir option.\n\n" if mysqlloc.nil?
+
+puts("mkdir -p #{bdir}") if verbose && !quiet
+system("mkdir -p #{bdir}")
+if tmpd
+  puts("mkdir -p #{tmpd}") if verbose && !quiet
+  system("mkdir -p #{tmpd}")
+end
+
+puts("#{File.join(mysqlloc, 'mysqldump')} #{dump_args.join(' ')} #{dump_path}") if verbose && !quiet
+system("#{File.join(mysqlloc, 'mysqldump')} #{dump_args.join(' ')} #{dump_path}")
+puts("\ndumped #{dump_path}") unless quiet
+
+if tmpd
+  puts("mv -f #{dump_path} #{mv_path}") if verbose && !quiet
+  system("mv -f #{dump_path} #{mv_path}")
+  puts("moved #{dump_path} to #{mv_path}") unless quiet
+end
+
+# rotate the dumps
+all_back = Dir.new(bdir).entries.sort.reverse
+all_back.delete_if { |item| item[0..0] == '.' }
+unw_back = all_back[max..-1] || []
+unw_back.each do |ub|
+  ub_path = File.join(bdir, ub)
+  puts("rm -f #{ub_path}") if verbose && !quiet
+  system("rm -f #{ub_path}")
+  puts("deleted #{ub_path}") unless quiet
+end
+puts '' unless quiet
