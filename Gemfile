@@ -5,6 +5,10 @@ require File.expand_path('../lib/regexp_extensions', FOREMAN_GEMFILE)
 
 source 'https://rubygems.org'
 
+ruby '1.9.3', :engine => 'ruby', :engine_version => '1.9.3', :patchlevel => '545'
+#ruby=ruby-1.9.3-p545
+#ruby-gemset=foreman
+
 gem 'rails', '3.2.21'
 gem 'json'
 gem 'rest-client', '> 1.6.2', '< 1.7', :require => 'rest_client'

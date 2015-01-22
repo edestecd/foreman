@@ -14,7 +14,7 @@ Foreman::Application.configure do |app|
   # Rails default is all ipv4 private address ranges
   # which filters out local miami ips as proxies and then we get 127.0.0.1 as client ip
   # https://github.com/rails/rails/pull/2632
-  config.action_dispatch.trusted_proxies = /\A10\.0\.30\.121\z|\A127\.0\.0\.1\z/
+  config.action_dispatch.trusted_proxies = /\A10\.1\.2\.182\z|\A127\.0\.0\.1\z/
 
   # Specifies the header that your server uses for sending files
   # config.action_dispatch.x_sendfile_header = "X-Sendfile"
